@@ -37,26 +37,40 @@ def get_args():
         args = parser.parse_args()
         return args
 
-def update_log(csv_writer, fpath, fname, msg, t_start, end_state):
-    now = datetime.now()
-    t_end = time.perf_counter()
-    elapsed_time = t_end - t_start
 
-    print(msg)
-    print("Elapsed time: ", elapsed_time, "\n")
+# Adds strongly-recommended metadata to WebVTT file header,
+# following FADGI recommendations outined in 
+# 'Guidelines for Embedding Metadata in WebVTT Files'
+# June 7, 2024 version
+#
+# Needs: filepath of VTT, use to create file object
+def write_fadgi_block(fpath, fname):
+    if not fpath:
+        print("write_fadgi_block: Empty filepath")
+        exit()
+    elif fpath.split(".")[-1] != "vtt":
+        print("write_fadgi_block: Expected VTT file")
+        exit()
+    elif os.path.exists(fpath):
+        print("write_fadgi_block: Filepath does not exist for: ", fpath)
+        exit()
 
-    try:
-        csv_writer.writerow([fpath, fname, elapsed_time,
-            msg, now.strftime("%Y/%m/%d %H:%M:%S", end_state)])
-        print("Wrote to results output file")
-    except:
-        print("Unable to write results to output file")
+    fname_tokens = fname.split("_", 2)
+    if len(fname_tokens) != 3:
+        print("write_fadgi_block: Improperly formatted VTT name: ", fname)
+        exit()
+    f_id = fname_tokens[0] + "_" + fname_tokens[1]
 
-def exit_msg(msg, msg_arg):
-    print(msg, msg_arg)
-    print("Exiting")
-    exit()
-
+    with open(fpath, 'w') as f:
+        f.readline()
+        f.write("Type: caption")
+        f.write("Language: eng")
+        f.write("Responsible party: US, California Revealed")
+        f.write("Media Identifier: ", f_id)
+        f.write("Originating File: ", fname)
+        f.write("File Creator: California Revealed")
+        f.write("File Creation Date: ", datetime.today().strftime('%Y-%m-%d'))
+        f.write("Origin History: Created in response to CA-R's Web Accessibility Audit")
 
 def main():
     ### INPUT VALIDATION ######################################################
