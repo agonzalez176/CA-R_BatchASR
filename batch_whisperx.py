@@ -72,8 +72,34 @@ def write_fadgi_block(fpath, fname):
         f.write("File Creation Date: ", datetime.today().strftime('%Y-%m-%d'))
         f.write("Origin History: Created in response to CA-R's Web Accessibility Audit")
 
+
+# Utility function for updating output log
+def update_log(csv_writer, fpath, fname, msg, t_start, end_state):
+    now = datetime.now()
+    t_end = time.perf_counter()
+    elapsed_time = t_end - t_start
+
+    print(msg)
+    print("Elapsed time: ", elapsed_time)
+
+    #try:
+    csv_writer.writerow([fpath, fname, elapsed_time,
+        msg, now.strftime("%Y/%m/%d %H:%M:%S"), end_state])
+    print("Wrote to results output file")
+    #except:
+    #    print("Unable to write results to output file"
+    print("\n")
+
+# Utility function for exiting the script
+def exit_msg(msg, msg_arg):
+    print(msg, msg_arg)
+    print("Exiting")
+    exit()
+
+
 def main():
     ### INPUT VALIDATION ######################################################
+    print("Let's start!")
     args = get_args()
 
     if not (os.path.exists(args.inlist)):
@@ -91,8 +117,11 @@ def main():
         print("Output log ", args.outlist, " not found. Creating now")
         try:
             f = open(args.outlist, "w", newline='')
+            f_writer = csv.writer(f, delimiter=',')
+            f_writer.writerow(["Filepath", "Filename", "Elapsed Time", "Message", "Completion Time", "Endstate"])
             f.close()
             print("Created output log at path: ", args.outlist)
+
         except:
             exit_msg("Failed to create output log at path: ",
              args.outlist)
@@ -113,7 +142,6 @@ def main():
     print("Set up model")
 
 
-
     ### BATCH-PROCESS LOOP ########################################################
     with open(args.inlist, newline='') as inlist_obj:
         in_reader = csv.reader(inlist_obj, delimiter=',')
@@ -126,8 +154,8 @@ def main():
             print("Found ", n_col, " columns. Expected 3. Exiting")
             inlist_obj.close()
             exit()
-        n_rows = sum(1 for row in inlist_obj) + 1
-        inlist_obj.seek(0)
+        n_rows = sum(1 for row in inlist_obj)
+        inlist_obj.seek(0); next(in_reader)
 
 
         with open(args.outlist, "a", newline='') as outlist_obj:
