@@ -27,6 +27,7 @@ def upload_file(s3_client, filename, bucket, object_name=None):
     :return: True if file was uploaded, else False
     """
     # If S3 object_name was not specified, use filename
+    print("object-name: ", object_name)
     if object_name is None:
         object_name = os.path.basename(filename)
 
@@ -79,7 +80,7 @@ def main():
             print("Made output log at path: ", args.log)
         except:
             exit_msg("Unable to create output log at path: ", args.log)
-    print("Validated args")
+    print("Validated args\n")
     ################################################################################
 
     ### S3 UPLOAD ###############################################
@@ -93,7 +94,7 @@ def main():
             print(f"Found {n_col} columns. Expected 3")
             print("Exiting")
             exit()
-        num_rows = sum(1 for row in inlist_obj)+ 1
+        num_rows = sum(1 for row in inlist_obj)
         inlist_obj.seek(0); next(in_reader)
         i=0
 
@@ -107,7 +108,7 @@ def main():
                 f_path, f_name, f_s3uri = row[0], row[1], row[2]
 
                 # Build S3 URI for VTT
-                f_key = ("/".join(f_s3uri.split('/')[3:])).split('.')[0] + ".vtt"
+                f_key = ("/".join(f_s3uri.split('/')[3:]))
                 fpath_obj = "_".join((f_path.split("\\")[-1]).split('_')[0:2])
                 fname_obj = "_".join(f_name.split('_')[0:2])
                 s3_obj = "_".join((f_key.split("/")[2]).split('_')[0:2])

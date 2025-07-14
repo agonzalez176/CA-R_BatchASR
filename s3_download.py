@@ -1,8 +1,12 @@
 #!/usr/bin/python
 
-import sys, os, csv, logging
+import sys, os, csv, logging, shutil
+from pathlib import Path
 import argparse
 import boto3
+
+
+storage_threshold=0.1
 
 class S3DownloadLogger(object):
         def __init__(self, filesize, filename):
@@ -43,11 +47,23 @@ def s3_download(client, bucket, file, outpath, outlist_f):
         file_outpath = outpath + "/" + file_name
         s3_uri = "s3://" + bucket + "/" + file_key
 
+        print("file_key: ", file_key)
+
         s3_obj = s3.head_object(
                 Bucket=bucket,
                 Key=file_key)
+
         logging.info(f"Starting download for '{file_key}'")
         download_logger =  S3DownloadLogger(s3_obj['ContentLength'], file_key)
+
+        # Check if available space to download the file
+        out_vol = Path(outpath).absolute().drive
+        out_vol_stats = shutil.disk_usage(out_vol)
+
+        if out_vol_stats.free - s3_obj['ContentLength'] < out_vol_stats.total * storage_threshold:
+                print("Downloading file would exceed recommended storage threshold.")
+                print("Exiting")
+                exit()
 
         try:
                 client.download_file(bucket, file_key, file_outpath,
@@ -59,7 +75,7 @@ def s3_download(client, bucket, file, outpath, outlist_f):
         print("\n")
 
 def download_loop(client, bucket, cell, outpath, outlist_f):
-        ''' Loop wrapper for s3_download().
+        ''' Loop warpper for s3_download().
             Iterates over 1 cell from input CSV,
             Downloads files from S3 for each object in file
 
