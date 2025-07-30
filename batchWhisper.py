@@ -18,7 +18,7 @@ class result_state(Enum):
 
 # Constants for transcription
 av_file_exts = ["wav","mp3","m4a","mov","mp4","webm","m4v","mpeg4"]
-default_model = "turbo"
+default_model = "large-v3"
 
 # Constants for embedding metadata
 fadgi_types = ["subtitle", "caption", "audio description",   # Vocab values for FADGI type
